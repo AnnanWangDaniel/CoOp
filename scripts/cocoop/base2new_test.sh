@@ -23,7 +23,7 @@ if [ -d "$DIR" ]; then
 else
     echo "Run this job and save the output to ${DIR}"
 
-    python train.py \
+    python /home/wangannan/promptDict/CoOp/train.py \
     --root ${DATA} \
     --seed ${SEED} \
     --trainer ${TRAINER} \
