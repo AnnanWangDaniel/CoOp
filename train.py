@@ -27,6 +27,8 @@ import trainers.coop
 import trainers.cocoop
 import trainers.zsclip
 
+print(os.getcwd())
+
 
 def print_args(args, cfg):
     print("***************")
