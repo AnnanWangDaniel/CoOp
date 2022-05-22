@@ -1,5 +1,5 @@
 # sh feat_extractor.sh
-DATA=/path/to/datasets
+DATA=/home/wangannan/promptDict/data
 OUTPUT='./clip_feat/'
 SEED=1
 

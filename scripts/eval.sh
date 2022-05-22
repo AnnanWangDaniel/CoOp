@@ -3,7 +3,7 @@
 cd ..
 
 # custom config
-DATA=/path/to/datasets
+DATA=/home/wangannan/promptDict/data
 TRAINER=CoOp
 SHOTS=16
 NCTX=16
