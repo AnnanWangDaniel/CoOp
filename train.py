@@ -27,6 +27,8 @@ import trainers.coop
 import trainers.cocoop
 import trainers.zsclip
 
+import os
+
 print(os.getcwd())
 
 
