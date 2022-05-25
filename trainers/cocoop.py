@@ -64,7 +64,11 @@ class PromptLearner(nn.Module):
         super().__init__()
         n_cls = len(classnames)
         n_ctx = cfg.TRAINER.COCOOP.N_CTX
+        n_prompts = cfg.TRAINER.COCOOP.N_PROMPTS
+
+        #INIT is changed from a string to a list of max 10 strings
         ctx_init = cfg.TRAINER.COCOOP.CTX_INIT
+
         dtype = clip_model.dtype
         ctx_dim = clip_model.ln_final.weight.shape[0]
         vis_dim = clip_model.visual.output_dim
@@ -72,6 +76,7 @@ class PromptLearner(nn.Module):
         cfg_imsize = cfg.INPUT.SIZE[0]
         assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
 
+        '''
         if ctx_init:
             # use given words to initialize context vectors
             ctx_init = ctx_init.replace("_", " ")
@@ -86,12 +91,37 @@ class PromptLearner(nn.Module):
             ctx_vectors = torch.empty(n_ctx, ctx_dim, dtype=dtype)
             nn.init.normal_(ctx_vectors, std=0.02)
             prompt_prefix = " ".join(["X"] * n_ctx)
+        '''
 
-        print(f'Initial context: "{prompt_prefix}"')
-        print(f"Number of context words (tokens): {n_ctx}")
+        prompts_count = 0
+        ctx_vectors_dict = {}
+        prompt_prefix_dict = {}
+        for p in ctx_init:
+            ctx_init_tmp = p.replace("_", " ")
+            prompt = clip.tokenize(ctx_init_tmp)
+            with torch.no_grad():
+                embedding = clip_model.token_embedding(prompt).type(dtype)
+            ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)] = embedding[0, 1 : 1 + n_ctx, :]
+            prompt_prefix_dict["prompt_prefix_{0}".format(prompts_count)] = ctx_init_tmp
+            prompts_count += 1
 
-        self.ctx = nn.Parameter(ctx_vectors)
+        while prompts_count < n_prompts:
+            ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)] = torch.empty(n_ctx, ctx_dim, dtype=dtype)
+            nn.init.normal_(ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)], std=0.02)
+            prompt_prefix = " ".join(["X"] * n_ctx)
+            prompts_count += 1
 
+        #print(f'Initial context: "{prompt_prefix}"')
+        #print(f"Number of context words (tokens): {n_ctx}")
+
+        #self.ctx = nn.Parameter(ctx_vectors)
+        self.ctx_dict = {}
+        for key in ctx_vectors_dict:
+            idx = key[-1:]
+            self.ctx_dict["ctx_{0}".format(idx)] = nn.Parameter(ctx_vectors_dict[key])
+            print(self.ctx_dict["ctx_{0}".format(idx)])
+            print(type(self.ctx_dict["ctx_{0}".format(idx)]))
+            
         self.meta_net = nn.Sequential(OrderedDict([
             ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
             ("relu", nn.ReLU(inplace=True)),
