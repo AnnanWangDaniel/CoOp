@@ -31,6 +31,5 @@ MODEL:
 TRAINER:
   COCOOP:
     N_CTX: 4
-    N_PROMPTS: 10
     CTX_INIT: ["a photo of a"]
     PREC: "fp16"

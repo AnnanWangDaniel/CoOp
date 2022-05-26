@@ -64,7 +64,9 @@ class PromptLearner(nn.Module):
         super().__init__()
         n_cls = len(classnames)
         n_ctx = cfg.TRAINER.COCOOP.N_CTX
-        n_prompts = cfg.TRAINER.COCOOP.N_PROMPTS
+
+        #number of configs in dict, to be added to config
+        n_prompts = 10
 
         #INIT is changed from a string to a list of max 10 strings
         ctx_init = cfg.TRAINER.COCOOP.CTX_INIT
