@@ -131,6 +131,8 @@ class PromptLearner(nn.Module):
                                 self.ctx_dict["ctx_9"]), 0)
         print("prompt initialized:")
         print(self.ctx)
+        print(self.ctx.size())
+
         '''    
         self.meta_net = nn.Sequential(OrderedDict([
             ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
@@ -145,7 +147,8 @@ class PromptLearner(nn.Module):
         ]))
         
         if cfg.TRAINER.COCOOP.PREC == "fp16":
-            self.meta_net.half()
+            #self.meta_net.half()
+            self.selection_net.half()
 
         classnames = [name.replace("_", " ") for name in classnames]
         name_lens = [len(_tokenizer.encode(name)) for name in classnames]
