@@ -129,7 +129,7 @@ class PromptLearner(nn.Module):
                                 self.ctx_dict["ctx_3"], self.ctx_dict["ctx_4"], self.ctx_dict["ctx_5"], 
                                 self.ctx_dict["ctx_6"], self.ctx_dict["ctx_7"], self.ctx_dict["ctx_8"], 
                                 self.ctx_dict["ctx_9"]), 0)
-        self.ctx = torch.transpose(self.ctx, 0, 1)
+        #self.ctx = torch.transpose(self.ctx, 0, 1)
         self.ctx = self.ctx.to("cuda:0")
         print("prompt initialized:")
         print(self.ctx)
