@@ -121,6 +121,7 @@ class PromptLearner(nn.Module):
         for key in ctx_vectors_dict:
             idx = key[-1:]
             self.ctx_dict["ctx_{0}".format(idx)] = nn.Parameter(ctx_vectors_dict[key])
+            print("prompt initialized:")
             print(self.ctx_dict["ctx_{0}".format(idx)])
             print(type(self.ctx_dict["ctx_{0}".format(idx)]))
             
@@ -176,6 +177,7 @@ class PromptLearner(nn.Module):
     def forward(self, im_features):
         prefix = self.token_prefix
         suffix = self.token_suffix
+        
         ctx = self.ctx                     # (n_ctx, ctx_dim)
         bias = self.meta_net(im_features)  # (batch, ctx_dim)
         bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
