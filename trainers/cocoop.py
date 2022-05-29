@@ -149,7 +149,7 @@ class PromptLearner(nn.Module):
         bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
         ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
         ctx_shifted = ctx + bias           # (batch, n_ctx, ctx_dim)
-        print(ctx_shifted.seiz())
+        print(ctx_shifted.size())
         
         # Use instance-conditioned context tokens for all classes
         prompts = []
