@@ -131,6 +131,8 @@ class PromptLearner(nn.Module):
                                 self.ctx_dict["ctx_9"]), 0)
         print("prompt initialized:")
         print(self.ctx)
+        print(self.ctx_dict["ctx_0"].size())
+        print(self.ctx_dict["ctx_1"].size())
         print(self.ctx.size())
 
         '''    
@@ -199,8 +201,9 @@ class PromptLearner(nn.Module):
         selector = self.selection_net(im_features)
         #bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
         selector = selector.unsqueeze(1)           # (batch, 1, ctx_dim)
+        print(selector.size())
         ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
-        ctx_shifted = ctx + bias           # (batch, n_ctx, ctx_dim)
+        ctx_shifted = selector * ctx         # (batch, n_ctx, ctx_dim)
         
         # Use instance-conditioned context tokens for all classes
         prompts = []
