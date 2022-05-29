@@ -128,7 +128,8 @@ class PromptLearner(nn.Module):
         self.ctx = torch.cat((self.ctx_dict["ctx_0"], self.ctx_dict["ctx_1"], self.ctx_dict["ctx_2"], 
                                 self.ctx_dict["ctx_3"], self.ctx_dict["ctx_4"], self.ctx_dict["ctx_5"], 
                                 self.ctx_dict["ctx_6"], self.ctx_dict["ctx_7"], self.ctx_dict["ctx_8"], 
-                                self.ctx_dict["ctx_9"]), 1)
+                                self.ctx_dict["ctx_9"]), 0)
+        torch.transpose(self.ctx, 0, 1)
         print("prompt initialized:")
         print(self.ctx)
         print(self.ctx_dict["ctx_0"].size())
