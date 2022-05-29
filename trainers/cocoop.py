@@ -121,14 +121,27 @@ class PromptLearner(nn.Module):
         for key in ctx_vectors_dict:
             idx = key[-1:]
             self.ctx_dict["ctx_{0}".format(idx)] = nn.Parameter(ctx_vectors_dict[key])
-            print("prompt initialized:")
-            print(self.ctx_dict["ctx_{0}".format(idx)])
-            print(type(self.ctx_dict["ctx_{0}".format(idx)]))
-            
+            #print("prompt initialized:")
+            #print(self.ctx_dict["ctx_{0}".format(idx)])
+            #print(type(self.ctx_dict["ctx_{0}".format(idx)]))
+
+        self.ctx = torch.cat((self.ctx_dict["ctx_0"], self.ctx_dict["ctx_1"], self.ctx_dict["ctx_2"], 
+                                self.ctx_dict["ctx_3"], self.ctx_dict["ctx_4"], self.ctx_dict["ctx_5"], 
+                                self.ctx_dict["ctx_6"], self.ctx_dict["ctx_7"], self.ctx_dict["ctx_8"], 
+                                self.ctx_dict["ctx_9"]), 0)
+        print("prompt initialized:")
+        print(self.ctx)
+        '''    
         self.meta_net = nn.Sequential(OrderedDict([
             ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
             ("relu", nn.ReLU(inplace=True)),
             ("linear2", nn.Linear(vis_dim // 16, ctx_dim))
+        ]))
+        '''
+        self.selection_net = nn.Sequential(OrderedDict([
+            ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
+            ("relu", nn.ReLU(inplace=True)),
+            ("linear2", nn.Linear(vis_dim // 16, n_ctx))
         ]))
         
         if cfg.TRAINER.COCOOP.PREC == "fp16":
@@ -179,8 +192,10 @@ class PromptLearner(nn.Module):
         suffix = self.token_suffix
         
         ctx = self.ctx                     # (n_ctx, ctx_dim)
-        bias = self.meta_net(im_features)  # (batch, ctx_dim)
-        bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
+        #bias = self.meta_net(im_features)  # (batch, ctx_dim)
+        selector = self.selection_net(im_features)
+        #bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
+        selector = selector.unsqueeze(1)           # (batch, 1, ctx_dim)
         ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
         ctx_shifted = ctx + bias           # (batch, n_ctx, ctx_dim)
         
