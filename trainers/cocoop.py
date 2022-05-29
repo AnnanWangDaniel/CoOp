@@ -128,7 +128,7 @@ class PromptLearner(nn.Module):
         self.ctx = torch.cat((self.ctx_dict["ctx_0"], self.ctx_dict["ctx_1"], self.ctx_dict["ctx_2"], 
                                 self.ctx_dict["ctx_3"], self.ctx_dict["ctx_4"], self.ctx_dict["ctx_5"], 
                                 self.ctx_dict["ctx_6"], self.ctx_dict["ctx_7"], self.ctx_dict["ctx_8"], 
-                                self.ctx_dict["ctx_9"]), 0)
+                                self.ctx_dict["ctx_9"]), 1)
         print("prompt initialized:")
         print(self.ctx)
         print(self.ctx_dict["ctx_0"].size())
@@ -202,7 +202,7 @@ class PromptLearner(nn.Module):
         #bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
         selector = selector.unsqueeze(1)           # (batch, 1, ctx_dim)
         print(selector.size())
-        ctx = ctx.unsqueeze(1)             # (1, n_ctx, ctx_dim)
+        ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
         print(ctx.size())
         ctx_shifted = selector * ctx         # (batch, n_ctx, ctx_dim)
         
