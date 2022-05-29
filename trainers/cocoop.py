@@ -207,7 +207,7 @@ class PromptLearner(nn.Module):
         #ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
         print(ctx.size())
         ctx_shifted = selector * ctx         # (batch, n_ctx, ctx_dim)
-        print(ctx_shifted.seiz())
+        print(ctx_shifted.size())
         
         # Use instance-conditioned context tokens for all classes
         prompts = []
