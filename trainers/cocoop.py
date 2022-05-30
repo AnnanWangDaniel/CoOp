@@ -206,7 +206,7 @@ class CustomCLIP(nn.Module):
         image_features = self.image_encoder(image.type(self.dtype))
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
-        prompts = self.prompt_learner(image_features)
+        prompts = self.prompt_learner_0(image_features)
         
         logits = []
         for pts_i, imf_i in zip(prompts, image_features):
@@ -256,7 +256,7 @@ class CoCoOp(TrainerX):
         print(f"Parameters to be updated: {enabled}")
 
         if cfg.MODEL.INIT_WEIGHTS:
-            load_pretrained_weights(self.model.prompt_learner, cfg.MODEL.INIT_WEIGHTS)
+            load_pretrained_weights(self.model.prompt_learner_0, cfg.MODEL.INIT_WEIGHTS)
 
         self.model.to(self.device)
         # NOTE: only give prompt_learner to the optimizer
