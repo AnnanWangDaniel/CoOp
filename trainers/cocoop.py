@@ -146,10 +146,12 @@ class PromptLearner(nn.Module):
         suffix = self.token_suffix
         ctx = self.ctx                     # (n_ctx, ctx_dim)
         bias = self.meta_net(im_features)  # (batch, ctx_dim)
+        print("bias before unsqueeze: " + bias.size())
         bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
+        print("bias after unsqueeze: " + bias.size())
         ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
         ctx_shifted = ctx + bias           # (batch, n_ctx, ctx_dim)
-        print(ctx_shifted.size())
+        print("ctx_shifted: " + ctx_shifted.size())
         
         # Use instance-conditioned context tokens for all classes
         prompts = []
