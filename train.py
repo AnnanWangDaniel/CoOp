@@ -27,6 +27,10 @@ import trainers.coop
 import trainers.cocoop
 import trainers.zsclip
 
+import os
+
+print(os.getcwd())
+os.chdir('/home/wangannan/promptDict/CoOp')
 
 def print_args(args, cfg):
     print("***************")
