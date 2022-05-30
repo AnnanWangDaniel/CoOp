@@ -168,27 +168,8 @@ class PromptLearner(nn.Module):
 class CustomCLIP(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
-        self.prompt_learner_0 = PromptLearner(cfg, classnames, clip_model, 0)
-        self.tokenized_prompts_0 = self.prompt_learner_0.tokenized_prompts
-
-        self.prompt_learner_1 = PromptLearner(cfg, classnames, clip_model, 1)
-        self.tokenized_prompts_1= self.prompt_learner_1.tokenized_prompts
-        self.prompt_learner_2 = PromptLearner(cfg, classnames, clip_model, 2)
-        self.tokenized_prompts_2 = self.prompt_learner_2.tokenized_prompts
-        self.prompt_learner_3 = PromptLearner(cfg, classnames, clip_model, 3)
-        self.tokenized_prompts_3 = self.prompt_learner_3.tokenized_prompts
-        self.prompt_learner_4 = PromptLearner(cfg, classnames, clip_model, 4)
-        self.tokenized_prompts_4 = self.prompt_learner_4.tokenized_prompts
-        self.prompt_learner_5 = PromptLearner(cfg, classnames, clip_model, 5)
-        self.tokenized_prompts_5 = self.prompt_learner_5.tokenized_prompts
-        self.prompt_learner_6 = PromptLearner(cfg, classnames, clip_model, 6)
-        self.tokenized_prompts_6 = self.prompt_learner_6.tokenized_prompts
-        self.prompt_learner_7 = PromptLearner(cfg, classnames, clip_model, 7)
-        self.tokenized_prompts_7 = self.prompt_learner_7.tokenized_prompts
-        self.prompt_learner_8 = PromptLearner(cfg, classnames, clip_model, 8)
-        self.tokenized_prompts_8 = self.prompt_learner_8.tokenized_prompts
-        self.prompt_learner_9 = PromptLearner(cfg, classnames, clip_model, 9)
-        self.tokenized_prompts_9 = self.prompt_learner_9.tokenized_prompts
+        self.prompt_learner = PromptLearner(cfg, classnames, clip_model, 0)
+        self.tokenized_prompts = self.prompt_learner.tokenized_prompts
 
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder(clip_model)
@@ -196,17 +177,14 @@ class CustomCLIP(nn.Module):
         self.dtype = clip_model.dtype
 
     def forward(self, image, label=None):
-        tokenized_prompts = self.tokenized_prompts_0
-        print(f'tokenized_prompts_0: "{tokenized_prompts.size()}"')
-        tokenized_prompts = self.tokenized_prompts_0 + self.tokenized_prompts_1
-        print(f'tokenized_prompts_0_1: "{tokenized_prompts.size()}"')
+        tokenized_prompts = self.tokenized_prompts
 
         logit_scale = self.logit_scale.exp()
 
         image_features = self.image_encoder(image.type(self.dtype))
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
-        prompts = self.prompt_learner_0(image_features)
+        prompts = self.prompt_learner(image_features)
         
         logits = []
         for pts_i, imf_i in zip(prompts, image_features):
@@ -256,13 +234,13 @@ class CoCoOp(TrainerX):
         print(f"Parameters to be updated: {enabled}")
 
         if cfg.MODEL.INIT_WEIGHTS:
-            load_pretrained_weights(self.model.prompt_learner_0, cfg.MODEL.INIT_WEIGHTS)
+            load_pretrained_weights(self.model.prompt_learner, cfg.MODEL.INIT_WEIGHTS)
 
         self.model.to(self.device)
         # NOTE: only give prompt_learner to the optimizer
-        self.optim = build_optimizer(self.model.prompt_learner_0, cfg.OPTIM)
+        self.optim = build_optimizer(self.model.prompt_learner, cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
-        self.register_model("prompt_learner", self.model.prompt_learner_0, self.optim, self.sched)
+        self.register_model("prompt_learner", self.model.prompt_learner, self.optim, self.sched)
 
         self.scaler = GradScaler() if cfg.TRAINER.COCOOP.PREC == "amp" else None
 
