@@ -65,10 +65,30 @@ class PromptLearner(nn.Module):
         n_cls = len(classnames)
         n_ctx = cfg.TRAINER.COCOOP.N_CTX
         ctx_init_lst = cfg.TRAINER.COCOOP.CTX_INIT
-        if prompt_idx < len(ctx_init_lst):
-            ctx_init = ctx_init_lst[prompt_idx]
-        else:
-            ctx_init = ""
+
+        #number of configs in dict, to be added to config
+        n_prompts = 10
+
+        prompts_count = 0
+        ctx_vectors_dict = {}
+        prompt_prefix_dict = {}
+        for p in ctx_init_lst:
+            ctx_init_tmp = p.replace("_", " ")
+            prompt = clip.tokenize(ctx_init_tmp)
+            with torch.no_grad():
+                embedding = clip_model.token_embedding(prompt).type(dtype)
+            ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)] = embedding[0, 1 : 1 + n_ctx, :]
+            prompt_prefix_dict["prompt_prefix_{0}".format(prompts_count)] = ctx_init_tmp
+            prompts_count += 1
+
+        while prompts_count < n_prompts:
+            ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)] = torch.empty(n_ctx, ctx_dim, dtype=dtype)
+            nn.init.normal_(ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)], std=0.02)
+            prompt_prefix = " ".join(["X"] * n_ctx)
+            prompts_count += 1
+        
+
+
         dtype = clip_model.dtype
         ctx_dim = clip_model.ln_final.weight.shape[0]
         vis_dim = clip_model.visual.output_dim

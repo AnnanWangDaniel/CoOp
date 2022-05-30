@@ -327,3 +327,165 @@ class CoOp(TrainerX):
 
 
 
+
+
+class PromptLearner(nn.Module):
+    def __init__(self, cfg, classnames, clip_model):
+        super().__init__()
+        n_cls = len(classnames)
+        n_ctx = cfg.TRAINER.COCOOP.N_CTX
+
+        #number of configs in dict, to be added to config
+        n_prompts = 10
+
+        #INIT is changed from a string to a list of max 10 strings
+        ctx_init = cfg.TRAINER.COCOOP.CTX_INIT
+
+        dtype = clip_model.dtype
+        ctx_dim = clip_model.ln_final.weight.shape[0]
+        vis_dim = clip_model.visual.output_dim
+        clip_imsize = clip_model.visual.input_resolution
+        cfg_imsize = cfg.INPUT.SIZE[0]
+        assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
+
+        '''
+        if ctx_init:
+            # use given words to initialize context vectors
+            ctx_init = ctx_init.replace("_", " ")
+            n_ctx = len(ctx_init.split(" "))
+            prompt = clip.tokenize(ctx_init)
+            with torch.no_grad():
+                embedding = clip_model.token_embedding(prompt).type(dtype)
+            ctx_vectors = embedding[0, 1 : 1 + n_ctx, :]
+            prompt_prefix = ctx_init
+        else:
+            # random initialization
+            ctx_vectors = torch.empty(n_ctx, ctx_dim, dtype=dtype)
+            nn.init.normal_(ctx_vectors, std=0.02)
+            prompt_prefix = " ".join(["X"] * n_ctx)
+        '''
+
+        prompts_count = 0
+        ctx_vectors_dict = {}
+        prompt_prefix_dict = {}
+        for p in ctx_init:
+            ctx_init_tmp = p.replace("_", " ")
+            prompt = clip.tokenize(ctx_init_tmp)
+            with torch.no_grad():
+                embedding = clip_model.token_embedding(prompt).type(dtype)
+            ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)] = embedding[0, 1 : 1 + n_ctx, :]
+            prompt_prefix_dict["prompt_prefix_{0}".format(prompts_count)] = ctx_init_tmp
+            prompts_count += 1
+
+        while prompts_count < n_prompts:
+            ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)] = torch.empty(n_ctx, ctx_dim, dtype=dtype)
+            nn.init.normal_(ctx_vectors_dict["ctx_vectors_{0}".format(prompts_count)], std=0.02)
+            prompt_prefix = " ".join(["X"] * n_ctx)
+            prompts_count += 1
+
+        #print(f'Initial context: "{prompt_prefix}"')
+        #print(f"Number of context words (tokens): {n_ctx}")
+
+        #self.ctx = nn.Parameter(ctx_vectors)
+        self.ctx_dict = {}
+        for key in ctx_vectors_dict:
+            idx = key[-1:]
+            self.ctx_dict["ctx_{0}".format(idx)] = nn.Parameter(ctx_vectors_dict[key])
+            #print("prompt initialized:")
+            #print(self.ctx_dict["ctx_{0}".format(idx)])
+            #print(type(self.ctx_dict["ctx_{0}".format(idx)]))
+
+        self.ctx = torch.cat((self.ctx_dict["ctx_0"], self.ctx_dict["ctx_1"], self.ctx_dict["ctx_2"], 
+                                self.ctx_dict["ctx_3"], self.ctx_dict["ctx_4"], self.ctx_dict["ctx_5"], 
+                                self.ctx_dict["ctx_6"], self.ctx_dict["ctx_7"], self.ctx_dict["ctx_8"], 
+                                self.ctx_dict["ctx_9"]), 0)
+        self.ctx = torch.transpose(self.ctx, 0, 1)
+        self.ctx = self.ctx.to("cuda:0")
+        print("prompt initialized:")
+        print(self.ctx)
+        print(self.ctx_dict["ctx_0"].size())
+        print(self.ctx_dict["ctx_1"].size())
+        print(self.ctx.size())
+
+        '''    
+        self.meta_net = nn.Sequential(OrderedDict([
+            ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
+            ("relu", nn.ReLU(inplace=True)),
+            ("linear2", nn.Linear(vis_dim // 16, ctx_dim))
+        ]))
+        '''
+        self.selection_net = nn.Sequential(OrderedDict([
+            ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
+            ("relu", nn.ReLU(inplace=True)),
+            ("linear2", nn.Linear(vis_dim // 16, n_ctx * n_prompts))
+        ]))
+        
+        if cfg.TRAINER.COCOOP.PREC == "fp16":
+            #self.meta_net.half()
+            self.selection_net.half()
+
+        classnames = [name.replace("_", " ") for name in classnames]
+        name_lens = [len(_tokenizer.encode(name)) for name in classnames]
+        prompts = [prompt_prefix + " " + name + "." for name in classnames]
+
+        tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompts])  # (n_cls, n_tkn)
+        with torch.no_grad():
+            embedding = clip_model.token_embedding(tokenized_prompts).type(dtype)
+
+        # These token vectors will be saved when in save_model(),
+        # but they should be ignored in load_model() as we want to use
+        # those computed using the current class names
+        self.register_buffer("token_prefix", embedding[:, :1, :])  # SOS
+        self.register_buffer("token_suffix", embedding[:, 1 + n_ctx :, :])  # CLS, EOS
+
+        self.n_cls = n_cls
+        self.n_ctx = n_ctx
+        self.tokenized_prompts = tokenized_prompts  # torch.Tensor
+        self.name_lens = name_lens
+    
+    def construct_prompts(self, ctx, prefix, suffix, label=None):
+        # dim0 is either batch_size (during training) or n_cls (during testing)
+        # ctx: context tokens, with shape of (dim0, n_ctx, ctx_dim)
+        # prefix: the sos token, with shape of (n_cls, 1, ctx_dim)
+        # suffix: remaining tokens, with shape of (n_cls, *, ctx_dim)
+
+        if label is not None:
+            prefix = prefix[label]
+            suffix = suffix[label]
+
+        prompts = torch.cat(
+            [
+                prefix,  # (dim0, 1, dim)
+                ctx,     # (dim0, n_ctx, dim)
+                suffix,  # (dim0, *, dim)
+            ],
+            dim=1,
+        )
+
+        return prompts
+
+    def forward(self, im_features):
+        prefix = self.token_prefix
+        suffix = self.token_suffix
+        
+        ctx = self.ctx                     # (n_ctx, ctx_dim)
+        #bias = self.meta_net(im_features)  # (batch, ctx_dim)
+        selector = self.selection_net(im_features)
+        #bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
+        #selector = selector.unsqueeze(1)           # (batch, 1, ctx_dim)
+        print(selector.size())
+        #ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
+        print(ctx.size())
+        ctx_shifted = selector * ctx         # (batch, n_ctx, ctx_dim)
+        ctx_shifted = ctx_shifted.unsqueeze(0)
+        print(ctx_shifted.size())
+        
+        # Use instance-conditioned context tokens for all classes
+        prompts = []
+        for ctx_shifted_i in ctx_shifted:
+            ctx_i = ctx_shifted_i.unsqueeze(0).expand(self.n_cls, -1, -1)
+            pts_i = self.construct_prompts(ctx_i, prefix, suffix)  # (n_cls, n_tkn, ctx_dim)
+            prompts.append(pts_i)
+        prompts = torch.stack(prompts)
+        
+        return prompts
