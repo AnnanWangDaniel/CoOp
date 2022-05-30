@@ -260,9 +260,9 @@ class CoCoOp(TrainerX):
 
         self.model.to(self.device)
         # NOTE: only give prompt_learner to the optimizer
-        self.optim = build_optimizer(self.model.prompt_learner, cfg.OPTIM)
+        self.optim = build_optimizer(self.model.prompt_learner_0, cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
-        self.register_model("prompt_learner", self.model.prompt_learner, self.optim, self.sched)
+        self.register_model("prompt_learner", self.model.prompt_learner_0, self.optim, self.sched)
 
         self.scaler = GradScaler() if cfg.TRAINER.COCOOP.PREC == "amp" else None
 
