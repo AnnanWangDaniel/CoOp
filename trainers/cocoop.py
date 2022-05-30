@@ -60,11 +60,15 @@ class TextEncoder(nn.Module):
 
 
 class PromptLearner(nn.Module):
-    def __init__(self, cfg, classnames, clip_model):
+    def __init__(self, cfg, classnames, clip_model, prompt_idx):
         super().__init__()
         n_cls = len(classnames)
         n_ctx = cfg.TRAINER.COCOOP.N_CTX
-        ctx_init = cfg.TRAINER.COCOOP.CTX_INIT
+        ctx_init_lst = cfg.TRAINER.COCOOP.CTX_INIT
+        if prompt_idx < len(ctx_init_lst):
+            ctx_init = ctx_init_lst[prompt_idx]
+        else:
+            ctx_init = ""
         dtype = clip_model.dtype
         ctx_dim = clip_model.ln_final.weight.shape[0]
         vis_dim = clip_model.visual.output_dim
@@ -146,12 +150,9 @@ class PromptLearner(nn.Module):
         suffix = self.token_suffix
         ctx = self.ctx                     # (n_ctx, ctx_dim)
         bias = self.meta_net(im_features)  # (batch, ctx_dim)
-        print(f'bias before unsqueeze: "{bias.size()}"')
         bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
-        print(f'bias after unsqueeze: "{bias.size()}"')
         ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
         ctx_shifted = ctx + bias           # (batch, n_ctx, ctx_dim)
-        print(f'ctx_shifted: "{ctx_shifted.size()}"')
         
         # Use instance-conditioned context tokens for all classes
         prompts = []
@@ -167,15 +168,39 @@ class PromptLearner(nn.Module):
 class CustomCLIP(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
-        self.prompt_learner = PromptLearner(cfg, classnames, clip_model)
-        self.tokenized_prompts = self.prompt_learner.tokenized_prompts
+        self.prompt_learner_0 = PromptLearner(cfg, classnames, clip_model, 0)
+        self.tokenized_prompts_0 = self.prompt_learner_0.tokenized_prompts
+
+        self.prompt_learner_1 = PromptLearner(cfg, classnames, clip_model, 1)
+        self.tokenized_prompts_1= self.prompt_learner_1.tokenized_prompts
+        self.prompt_learner_2 = PromptLearner(cfg, classnames, clip_model, 2)
+        self.tokenized_prompts_2 = self.prompt_learner_2.tokenized_prompts
+        self.prompt_learner_3 = PromptLearner(cfg, classnames, clip_model, 3)
+        self.tokenized_prompts_3 = self.prompt_learner_3.tokenized_prompts
+        self.prompt_learner_4 = PromptLearner(cfg, classnames, clip_model, 4)
+        self.tokenized_prompts_4 = self.prompt_learner_4.tokenized_prompts
+        self.prompt_learner_5 = PromptLearner(cfg, classnames, clip_model, 5)
+        self.tokenized_prompts_5 = self.prompt_learner_5.tokenized_prompts
+        self.prompt_learner_6 = PromptLearner(cfg, classnames, clip_model, 6)
+        self.tokenized_prompts_6 = self.prompt_learner_6.tokenized_prompts
+        self.prompt_learner_7 = PromptLearner(cfg, classnames, clip_model, 7)
+        self.tokenized_prompts_7 = self.prompt_learner_7.tokenized_prompts
+        self.prompt_learner_8 = PromptLearner(cfg, classnames, clip_model, 8)
+        self.tokenized_prompts_8 = self.prompt_learner_8.tokenized_prompts
+        self.prompt_learner_9 = PromptLearner(cfg, classnames, clip_model, 9)
+        self.tokenized_prompts_9 = self.prompt_learner_9.tokenized_prompts
+
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder(clip_model)
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
 
     def forward(self, image, label=None):
-        tokenized_prompts = self.tokenized_prompts
+        tokenized_prompts = self.tokenized_prompts_0
+        print(f'tokenized_prompts_0: "{tokenized_prompts.size()}"')
+        tokenized_prompts = self.tokenized_prompts_0 + self.tokenized_prompts_1
+        print(f'tokenized_prompts_0_1: "{tokenized_prompts.size()}"')
+
         logit_scale = self.logit_scale.exp()
 
         image_features = self.image_encoder(image.type(self.dtype))
