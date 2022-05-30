@@ -206,7 +206,8 @@ class PromptLearner(nn.Module):
         print(selector.size())
         #ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
         print(ctx.size())
-        ctx_shifted = selector * ctx         # (batch, n_ctx, ctx_dim)
+        #ctx_shifted = selector * ctx         # (batch, n_ctx, ctx_dim)
+        ctx_shifted = torch.mm(selector, ctx)
         ctx_shifted = ctx_shifted.unsqueeze(0)
         print(ctx_shifted.size())
         
