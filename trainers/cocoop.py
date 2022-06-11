@@ -143,8 +143,6 @@ class PromptLearner(nn.Module):
 
     def forward(self, im_features):
         prefix = self.token_prefix
-        print("prefix shape")
-        print(prefix.shape)
         suffix = self.token_suffix
         ctx = self.ctx                     # (n_ctx, ctx_dim)
         bias = self.meta_net(im_features)  # (batch, ctx_dim)
