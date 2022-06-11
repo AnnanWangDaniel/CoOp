@@ -147,7 +147,7 @@ class PromptLearner(nn.Module):
         self.selection_net = nn.Sequential(OrderedDict([
             ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
             ("relu", nn.ReLU(inplace=True)),
-            ("linear2", nn.Linear(vis_dim // 16, n_ctx * n_prompts))
+            ("linear2", nn.Linear(vis_dim // 16, 4 * n_ctx * n_prompts))
         ]))
         
         if cfg.TRAINER.COCOOP.PREC == "fp16":
