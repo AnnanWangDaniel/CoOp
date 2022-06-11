@@ -138,7 +138,7 @@ class PromptLearner(nn.Module):
             ],
             dim=1,
         )
-
+        print(prompts.shape)
         return prompts
 
     def forward(self, im_features):
@@ -160,6 +160,9 @@ class PromptLearner(nn.Module):
             pts_i = self.construct_prompts(ctx_i, prefix, suffix)  # (n_cls, n_tkn, ctx_dim)
             prompts.append(pts_i)
         prompts = torch.stack(prompts)
+
+        print("second")
+        print(prompts.shape)
         
         return prompts
 
