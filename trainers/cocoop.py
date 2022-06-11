@@ -138,11 +138,12 @@ class PromptLearner(nn.Module):
             ],
             dim=1,
         )
-        print(prompts.shape)
         return prompts
 
     def forward(self, im_features):
         prefix = self.token_prefix
+        print("prefix shape")
+        print(prefix.shape)
         suffix = self.token_suffix
         ctx = self.ctx                     # (n_ctx, ctx_dim)
         bias = self.meta_net(im_features)  # (batch, ctx_dim)
@@ -150,6 +151,7 @@ class PromptLearner(nn.Module):
         bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
         print(f'bias after unsqueeze: "{bias.size()}"')
         ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
+        print(ctx.shape)
         ctx_shifted = ctx + bias           # (batch, n_ctx, ctx_dim)
         print(f'ctx_shifted: "{ctx_shifted.size()}"')
         
@@ -161,7 +163,7 @@ class PromptLearner(nn.Module):
             prompts.append(pts_i)
         prompts = torch.stack(prompts)
 
-        print("second")
+        print("prompt learner output shape")
         print(prompts.shape)
         
         return prompts
@@ -192,6 +194,10 @@ class CustomCLIP(nn.Module):
         
         logits = []
         for pts_i, imf_i in zip(prompts, image_features):
+            print("pts_i shape")
+            print(pts_i.shape)
+            print("imf_i shape")
+            print(imf_i.shape)
             text_features = self.text_encoder(pts_i, tokenized_prompts)
             text_features = text_features / text_features.norm(dim=-1, keepdim=True)
             l_i = logit_scale * imf_i @ text_features.t()
