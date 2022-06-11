@@ -179,9 +179,13 @@ class CustomCLIP(nn.Module):
 
     def forward(self, image, label=None):
         tokenized_prompts = self.tokenized_prompts
+        print("tokenized_prompts shape")
+        print(tokenized_prompts.shape)
         logit_scale = self.logit_scale.exp()
 
         image_features = self.image_encoder(image.type(self.dtype))
+        print("image features shape")
+        print(image_features.shape)
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
         prompts = self.prompt_learner(image_features)
