@@ -2,7 +2,6 @@ from lib2to3.pgen2 import token
 import os.path as osp
 from collections import OrderedDict
 import math
-import numpy as np
 
 import torch
 import torch.nn as nn
@@ -207,8 +206,7 @@ class CustomCLIP(nn.Module):
         self.dtype = clip_model.dtype
 
         self.tokenized_promptDict = torch.cat((self.tokenized_prompts_0, self.tokenized_prompts_1), 0)
-
-        vis_dim = clip_model.visual.output_dim
+        self.softmax = nn.Softmax(dim=1)
         # prompt_dict_size = 2
         # self.selection_net = nn.Sequential(OrderedDict([
         #     ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
@@ -219,9 +217,6 @@ class CustomCLIP(nn.Module):
         # if cfg.TRAINER.COCOOP.PREC == "fp16":
         #     self.selection_net.half()
 
-    def softmax(self, x):
-        return np.exp(x) / np.sum(np.exp(x), axis = 0)
-
     def forward(self, image, label=None):
         logit_scale = self.logit_scale.exp()
 
@@ -231,7 +226,7 @@ class CustomCLIP(nn.Module):
         prompts_0, confidence_0 = self.prompt_learner_0(image_features)
         prompts_1, confidence_1 = self.prompt_learner_1(image_features)
         confidence_lst = [confidence_0, confidence_1]
-        confidence_lst = self.softmax(confidence_lst)
+        confidence_lst = self.softmax(torch.Tensor(confidence_lst))
         #selector = self.selection_net(image_features)
         prompts = torch.mul(prompts_0, confidence_lst[0]) + torch.mul(prompts_1, confidence_lst[1])
         tokenized_prompts = torch.mul(self.tokenized_prompts_0, confidence_0) + torch.mul(self.tokenized_prompts_1, confidence_1)
