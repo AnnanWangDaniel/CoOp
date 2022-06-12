@@ -83,7 +83,9 @@ class PromptLearner(nn.Module):
             print(prompt)
             with torch.no_grad():
                 embedding = clip_model.token_embedding(prompt).type(dtype)
+            print(embedding)
             ctx_vectors = embedding[0, 1 : 1 + n_ctx, :]
+            print(ctx_vectors)
             prompt_prefix = ctx_init
         else:
             # random initialization
