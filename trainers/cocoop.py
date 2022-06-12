@@ -206,7 +206,7 @@ class CustomCLIP(nn.Module):
         self.dtype = clip_model.dtype
 
         self.tokenized_promptDict = torch.cat((self.tokenized_prompts_0, self.tokenized_prompts_1), 0)
-        self.softmax = nn.Softmax(dim=1)
+        self.softmax = nn.Softmax()
         # prompt_dict_size = 2
         # self.selection_net = nn.Sequential(OrderedDict([
         #     ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
