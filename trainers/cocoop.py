@@ -216,11 +216,14 @@ class CustomCLIP(nn.Module):
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
         prompts_0 = self.prompt_learner_0(image_features)
+        print("prompts_0 shape")
+        print(prompts_0.shape)
         prompts_1 = self.prompt_learner_1(image_features)
         promptDict = torch.cat((prompts_0, prompts_1), 0)
 
         selector = self.selection_net(image_features)
-
+        print("promptDict shape")
+        print(promptDict.shape)
         prompts = promptDict @ selector
         tokenized_prompts = self.tokenized_promptDict @ selector
         
