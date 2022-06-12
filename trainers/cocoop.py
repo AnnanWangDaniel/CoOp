@@ -219,7 +219,7 @@ class CustomCLIP(nn.Module):
         # if cfg.TRAINER.COCOOP.PREC == "fp16":
         #     self.selection_net.half()
 
-    def softmax(x):
+    def softmax(self, x):
         return np.exp(x) / np.sum(np.exp(x), axis = 0)
 
     def forward(self, image, label=None):
