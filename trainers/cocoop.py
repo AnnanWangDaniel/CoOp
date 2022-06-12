@@ -1,3 +1,4 @@
+from lib2to3.pgen2 import token
 import os.path as osp
 from collections import OrderedDict
 import math
@@ -58,7 +59,6 @@ class TextEncoder(nn.Module):
 
         return x
 
-
 class PromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model, prompt_idx):
         super().__init__()
@@ -101,9 +101,16 @@ class PromptLearner(nn.Module):
             ("relu", nn.ReLU(inplace=True)),
             ("linear2", nn.Linear(vis_dim // 16, ctx_dim))
         ]))
+
+        self.confidence_net = nn.Sequential(OrderedDict([
+            ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
+            ("relu", nn.ReLU(inplace=True)),
+            ("linear2", nn.Linear(vis_dim // 16, 1))
+        ]))
         
         if cfg.TRAINER.COCOOP.PREC == "fp16":
             self.meta_net.half()
+            self.confidence_net.half()
 
         classnames = [name.replace("_", " ") for name in classnames]
         name_lens = [len(_tokenizer.encode(name)) for name in classnames]
@@ -161,8 +168,10 @@ class PromptLearner(nn.Module):
             pts_i = self.construct_prompts(ctx_i, prefix, suffix)  # (n_cls, n_tkn, ctx_dim)
             prompts.append(pts_i)
         prompts = torch.stack(prompts)
+
+        conficence = self.confidence_net(im_features)
         
-        return prompts
+        return (prompts, conficence)
 
 
 class CustomCLIP(nn.Module):
@@ -199,15 +208,15 @@ class CustomCLIP(nn.Module):
         self.tokenized_promptDict = torch.cat((self.tokenized_prompts_0, self.tokenized_prompts_1), 0)
 
         vis_dim = clip_model.visual.output_dim
-        prompt_dict_size = 2
-        self.selection_net = nn.Sequential(OrderedDict([
-            ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
-            ("relu", nn.ReLU(inplace=True)),
-            ("linear2", nn.Linear(vis_dim // 16, prompt_dict_size))
-        ]))
+        # prompt_dict_size = 2
+        # self.selection_net = nn.Sequential(OrderedDict([
+        #     ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
+        #     ("relu", nn.ReLU(inplace=True)),
+        #     ("linear2", nn.Linear(vis_dim // 16, prompt_dict_size))
+        # ]))
 
-        if cfg.TRAINER.COCOOP.PREC == "fp16":
-            self.selection_net.half()
+        # if cfg.TRAINER.COCOOP.PREC == "fp16":
+        #     self.selection_net.half()
 
     def forward(self, image, label=None):
         logit_scale = self.logit_scale.exp()
@@ -215,17 +224,13 @@ class CustomCLIP(nn.Module):
         image_features = self.image_encoder(image.type(self.dtype))
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
-        prompts_0 = self.prompt_learner_0(image_features)
-        print("prompts_0 shape")
-        print(prompts_0.shape)
-        prompts_1 = self.prompt_learner_1(image_features)
-        promptDict = torch.cat((prompts_0, prompts_1), 0)
-
-        selector = self.selection_net(image_features)
-        print("promptDict shape")
-        print(promptDict.shape)
-        prompts = promptDict @ selector
-        tokenized_prompts = self.tokenized_promptDict @ selector
+        prompts_0, confidence_0 = self.prompt_learner_0(image_features)
+        prompts_1, confidence_1 = self.prompt_learner_1(image_features)
+        confidence_lst = [confidence_0, confidence_1]
+        F.normalize(confidence_lst, p = 2.0)
+        #selector = self.selection_net(image_features)
+        prompts = torch.mul(prompts_0, confidence_lst[0]) + torch.mul(prompts_1, confidence_lst[1])
+        tokenized_prompts = torch.mul(self.tokenized_prompts_0, confidence_0) + torch.mul(self.tokenized_prompts_1, confidence_1)
         
         logits = []
         for pts_i, imf_i in zip(prompts, image_features):
