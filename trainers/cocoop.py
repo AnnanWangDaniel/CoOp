@@ -59,7 +59,7 @@ class TextEncoder(nn.Module):
 
 
 class PromptLearner(nn.Module):
-    def __init__(self, cfg, classnames, clip_model):
+    def __init__(self, cfg, classnames, clip_model, prompt_idx):
         super().__init__()
         n_cls = len(classnames)
         n_ctx = cfg.TRAINER.COCOOP.N_CTX
@@ -77,18 +77,16 @@ class PromptLearner(nn.Module):
         if ctx_init:
             # use given words to initialize context vectors
             ctx_init = ctx_init.replace("_", " ")
-            print(ctx_init)
-            print(ctx_init)
             n_ctx = len(ctx_init.split(" "))
-            prompt = clip.tokenize(ctx_init)
+            prompt = clip.tokenize(ctx_init)     #prompt shape [1,77]
             print(prompt)
             print(prompt.shape)
             with torch.no_grad():
                 embedding = clip_model.token_embedding(prompt).type(dtype)
-            print(embedding)
+            print(embedding)        #embedding shape[1,77,512]
             print(embedding.shape)
             ctx_vectors = embedding[0, 1 : 1 + n_ctx, :]
-            print(ctx_vectors)
+            print(ctx_vectors)      #ctx_vectors shape [4, 512]
             print(ctx_vectors.shape)
             prompt_prefix = ctx_init
         else:
@@ -107,7 +105,16 @@ class PromptLearner(nn.Module):
             ("relu", nn.ReLU(inplace=True)),
             ("linear2", nn.Linear(vis_dim // 16, ctx_dim))
         ]))
+
+
+        n_prompts_in_dict = 2
+        self.selection_net = nn.Sequential(OrderedDict([
+            ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
+            ("relu", nn.ReLU(inplace=True)),
+            ("linear2", nn.Linear(vis_dim // 16, n_prompts_in_dict))
+        ]))
         
+
         if cfg.TRAINER.COCOOP.PREC == "fp16":
             self.meta_net.half()
 
@@ -172,8 +179,13 @@ class PromptLearner(nn.Module):
 class CustomCLIP(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
-        self.prompt_learner = PromptLearner(cfg, classnames, clip_model)
+        self.prompt_learner = PromptLearner(cfg, classnames, clip_model, 0)
         self.tokenized_prompts = self.prompt_learner.tokenized_prompts
+
+        self.prompt_learner_1 = PromptLearner(cfg, classnames, clip_model, 1)
+        self.tokenized_prompts_1 = self.prompt_learner.tokenized_prompts
+
+
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder(clip_model)
         self.logit_scale = clip_model.logit_scale
