@@ -229,9 +229,7 @@ class CustomCLIP(nn.Module):
         confidence_lst = self.softmax(torch.Tensor(confidence_lst))
         #selector = self.selection_net(image_features)
         prompts = torch.mul(prompts_0, confidence_lst[0]) + torch.mul(prompts_1, confidence_lst[1])
-        print("tokenized prompt device:", self.tokenized_prompts_0.device)
-        print("device:", confidence_lst.device)
-        tokenized_prompts = torch.mul(self.tokenized_prompts_0, confidence_0) + torch.mul(self.tokenized_prompts_1, confidence_1)
+        tokenized_prompts = torch.mul(self.tokenized_prompts_0, confidence_lst[0]) + torch.mul(self.tokenized_prompts_1, confidence_lst[1])
         
         logits = []
         for pts_i, imf_i in zip(prompts, image_features):
