@@ -72,8 +72,8 @@ class PromptLearner(nn.Module):
         assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
 
         print("ctx_dim.shape")
-        print(ctx_dim.shape)
-        
+        print(ctx_dim)
+
         if ctx_init:
             # use given words to initialize context vectors
             ctx_init = ctx_init.replace("_", " ")
