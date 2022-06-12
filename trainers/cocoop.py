@@ -55,8 +55,6 @@ class TextEncoder(nn.Module):
         # x.shape = [batch_size, n_ctx, transformer.width]
         # take features from the eot embedding (eot_token is the highest number in each sequence)
         x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
-        print("text size")
-        print(x.shape)
         return x
 
 
@@ -146,14 +144,10 @@ class PromptLearner(nn.Module):
         suffix = self.token_suffix
         ctx = self.ctx                     # (n_ctx, ctx_dim)
         bias = self.meta_net(im_features)  # (batch, ctx_dim)
-        print(f'bias before unsqueeze: "{bias.size()}"')
         bias = bias.unsqueeze(1)           # (batch, 1, ctx_dim)
-        print(f'bias after unsqueeze: "{bias.size()}"')
         ctx = ctx.unsqueeze(0)             # (1, n_ctx, ctx_dim)
-        print(ctx.shape)
         ctx_shifted = ctx + bias           # (batch, n_ctx, ctx_dim)
-        print(f'ctx_shifted: "{ctx_shifted.size()}"')
-        
+
         # Use instance-conditioned context tokens for all classes
         prompts = []
         for ctx_shifted_i in ctx_shifted:
@@ -162,11 +156,7 @@ class PromptLearner(nn.Module):
             prompts.append(pts_i)
         prompts = torch.stack(prompts)
 
-        print("prompt learner output shape")
-        print(prompts.shape)
-        
         return prompts
-
 
 class CustomCLIP(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
@@ -180,23 +170,15 @@ class CustomCLIP(nn.Module):
 
     def forward(self, image, label=None):
         tokenized_prompts = self.tokenized_prompts
-        print("tokenized_prompts shape")
-        print(tokenized_prompts.shape)
         logit_scale = self.logit_scale.exp()
 
         image_features = self.image_encoder(image.type(self.dtype))
-        print("image features shape")
-        print(image_features.shape)
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
         prompts = self.prompt_learner(image_features)
         
         logits = []
         for pts_i, imf_i in zip(prompts, image_features):
-            print("pts_i shape")
-            print(pts_i.shape)
-            print("imf_i shape")
-            print(imf_i.shape)
             text_features = self.text_encoder(pts_i, tokenized_prompts)
             text_features = text_features / text_features.norm(dim=-1, keepdim=True)
             l_i = logit_scale * imf_i @ text_features.t()
