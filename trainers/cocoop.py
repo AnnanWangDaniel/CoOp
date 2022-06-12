@@ -78,14 +78,18 @@ class PromptLearner(nn.Module):
             # use given words to initialize context vectors
             ctx_init = ctx_init.replace("_", " ")
             print(ctx_init)
+            print(ctx_init)
             n_ctx = len(ctx_init.split(" "))
             prompt = clip.tokenize(ctx_init)
             print(prompt)
+            print(prompt.shape)
             with torch.no_grad():
                 embedding = clip_model.token_embedding(prompt).type(dtype)
             print(embedding)
+            print(embedding.shape)
             ctx_vectors = embedding[0, 1 : 1 + n_ctx, :]
             print(ctx_vectors)
+            print(ctx_vectors.shape)
             prompt_prefix = ctx_init
         else:
             # random initialization
