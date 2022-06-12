@@ -173,6 +173,7 @@ class CustomCLIP(nn.Module):
 
         self.prompt_learner_1 = PromptLearner(cfg, classnames, clip_model, 1)
         self.tokenized_prompts_1= self.prompt_learner_1.tokenized_prompts
+        '''
         self.prompt_learner_2 = PromptLearner(cfg, classnames, clip_model, 2)
         self.tokenized_prompts_2 = self.prompt_learner_2.tokenized_prompts
         self.prompt_learner_3 = PromptLearner(cfg, classnames, clip_model, 3)
@@ -189,24 +190,36 @@ class CustomCLIP(nn.Module):
         self.tokenized_prompts_8 = self.prompt_learner_8.tokenized_prompts
         self.prompt_learner_9 = PromptLearner(cfg, classnames, clip_model, 9)
         self.tokenized_prompts_9 = self.prompt_learner_9.tokenized_prompts
-
+        '''
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder(clip_model)
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
 
-    def forward(self, image, label=None):
-        tokenized_prompts = self.tokenized_prompts_0
-        print(f'tokenized_prompts_0: "{tokenized_prompts.size()}"')
-        tokenized_prompts = self.tokenized_prompts_0 + self.tokenized_prompts_1
-        print(f'tokenized_prompts_0_1: "{tokenized_prompts.size()}"')
+        self.tokenized_promptDict = torch.cat((self.tokenized_prompts_0, self.tokenized_prompts_1), 0)
 
+        vis_dim = clip_model.visual.output_dim
+        prompt_dict_size = 2
+        self.selection_net = nn.Sequential(OrderedDict([
+            ("linear1", nn.Linear(vis_dim, vis_dim // 16)),
+            ("relu", nn.ReLU(inplace=True)),
+            ("linear2", nn.Linear(vis_dim // 16, prompt_dict_size))
+        ]))
+
+    def forward(self, image, label=None):
         logit_scale = self.logit_scale.exp()
 
         image_features = self.image_encoder(image.type(self.dtype))
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
-        prompts = self.prompt_learner_0(image_features)
+        prompts_0 = self.prompt_learner_0(image_features)
+        prompts_1 = self.prompt_learner_1(image_features)
+        promptDict = torch.cat((prompts_0, prompts_1), 0)
+
+        selector = self.selection_net(image_features)
+
+        prompts = promptDict @ selector
+        tokenized_prompts = self.tokenized_promptDict @ selector
         
         logits = []
         for pts_i, imf_i in zip(prompts, image_features):
