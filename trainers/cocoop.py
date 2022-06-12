@@ -206,6 +206,9 @@ class CustomCLIP(nn.Module):
             ("linear2", nn.Linear(vis_dim // 16, prompt_dict_size))
         ]))
 
+        if cfg.TRAINER.COCOOP.PREC == "fp16":
+            self.selection_net.half()
+
     def forward(self, image, label=None):
         logit_scale = self.logit_scale.exp()
 
