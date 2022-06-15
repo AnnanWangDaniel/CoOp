@@ -227,8 +227,14 @@ class CustomCLIP(nn.Module):
         prompts_1, confidence_1 = self.prompt_learner_1(image_features)
         confidence_lst = torch.cat((confidence_0, confidence_1), dim = 1)
         confidence_lst = self.softmax(confidence_lst)
-        print("confidence_lst", confidence_lst)
+        prompts_lst = torch.cat((prompts_0, prompts_1), dim = 1)
+        #print("confidence_lst", confidence_lst)
         #selector = self.selection_net(image_features)
+        logits = []
+        for pts_lst_i, imf_i, conf_lst_i in zip(prompts_lst, image_features, confidence_lst):
+            pts_i = torch.mul(pts_lst_i[0], conf_lst_i[0]) + torch.mul(pts_lst_i[0], conf_lst_i[0])
+            
+
         prompts = torch.mul(prompts_0, confidence_lst[0]) + torch.mul(prompts_1, confidence_lst[1])
         tokenized_prompts = torch.mul(self.tokenized_prompts_0, confidence_lst[0]) + torch.mul(self.tokenized_prompts_1, confidence_lst[1])
         
