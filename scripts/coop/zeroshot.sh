@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # custom config
-DATA=/home/wangannan/DATA
+DATA=/home/FYP/c190190/DATA
 TRAINER=ZeroshotCLIP
 DATASET=$1
 CFG=$2  # rn50, rn101, vit_b32 or vit_b16
