@@ -11,6 +11,6 @@
 
 
 module load anaconda
-conda activate coop
+source activate coop
 
 bash scripts/coop/main.sh caltech101 rn50_ep50 end 16 1 False
