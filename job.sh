@@ -10,8 +10,8 @@
 #SBATCH --error=error_%x_%j.err
 
 
-module load anaconda
-conda init
-conda activate coop
+# module load anaconda
+# conda init
+# conda activate coop
 
 bash scripts/coop/main.sh caltech101 rn50_ep50 end 16 1 False
