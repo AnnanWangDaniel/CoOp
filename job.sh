@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH ‐‐partition=SCSEGPU_UG
+#SBATCH --partition=SCSEGPU_UG
 #SBATCH ‐‐qos=normal
 #SBATCH ‐‐nodes=1
 #SBATCH ‐‐ntasks‐per‐node=1
