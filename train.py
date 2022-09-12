@@ -26,6 +26,7 @@ import datasets.imagenet_r
 import trainers.coop
 import trainers.cocoop
 import trainers.zsclip
+import trainers.clip_adapter
 
 
 def print_args(args, cfg):
