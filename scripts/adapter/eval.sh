@@ -2,7 +2,7 @@
 
 # custom config
 DATA=/home/FYP/c190190/DATA
-TRAINER=clip_adapter
+TRAINER=CLIP_adapter
 #SHOTS=16
 NCTX=16
 CSC=False
