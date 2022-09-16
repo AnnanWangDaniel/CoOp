@@ -94,7 +94,7 @@ class CustomCLIP(nn.Module):
         self.text_encoder = TextEncoder(cfg, classnames, clip_model)
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
-        self.adapter = Adapter(512, 4).to(clip_model.dtype)
+        self.adapter = Adapter(1024, 4).to(clip_model.dtype)
 
             
     def forward(self, image):
