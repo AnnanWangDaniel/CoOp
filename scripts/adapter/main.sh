@@ -10,7 +10,7 @@ SHOTS=$3  # number of shots (1, 2, 4, 8, 16)
 
 for SEED in 1 2 3
 do
-    DIR=output/${DATASET}/${TRAINER}/${CFG}_${SHOTS}shots/seed${SEED}
+    DIR=output/${DATASET}/${TRAINER}/modified/${CFG}_${SHOTS}shots/seed${SEED}
     if [ -d "$DIR" ]; then
         echo "Oops! The results exist at ${DIR} (so skip this job)"
     else
