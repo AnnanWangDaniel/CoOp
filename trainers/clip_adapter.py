@@ -132,15 +132,18 @@ class CLIP_Adapter(TrainerX):
         print('Building custom CLIP')
         self.model = CustomCLIP(cfg, classnames, clip_model)
 
+        print(self.model)
+
         for name, param in self.model.named_parameters():
             print(name)
-            print(param)
             print('-----')
-        sys.exit(1)
+
         print('Turning off gradients in both the image and the text encoder')
         for name, param in self.model.named_parameters():
             if 'adapter' not in name:
                 param.requires_grad_(False)
+        print(self.model)
+        sys.exit(1)
 
         if cfg.MODEL.INIT_WEIGHTS:
             load_pretrained_weights(self.model.adapter, cfg.MODEL.INIT_WEIGHTS)
