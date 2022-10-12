@@ -12,6 +12,8 @@ from dassl.optim import build_optimizer, build_lr_scheduler
 from clip import clip
 from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
+import sys
+
 _tokenizer = _Tokenizer()
 
 
@@ -130,6 +132,8 @@ class CLIP_Adapter(TrainerX):
         print('Building custom CLIP')
         self.model = CustomCLIP(cfg, classnames, clip_model)
 
+        print(self.model.named_parameters())
+        sys.exit(1)
         print('Turning off gradients in both the image and the text encoder')
         for name, param in self.model.named_parameters():
             if 'adapter' not in name:
