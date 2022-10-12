@@ -52,21 +52,6 @@ def load_clip_to_cpu(cfg):
     model = clip.build_model(state_dict or model.state_dict())
 
     return model
-
-
-class Adapter(nn.Module):
-    def __init__(self, c_in, reduction=4):
-        super(Adapter, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(c_in, c_in // reduction, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(c_in // reduction, c_in, bias=False),
-            nn.ReLU(inplace=True)
-        )
-
-    def forward(self, x):
-        x = self.fc(x)
-        return x
     
     
 class TextEncoder(nn.Module):
@@ -96,16 +81,9 @@ class CustomCLIP(nn.Module):
         self.text_encoder = TextEncoder(cfg, classnames, clip_model)
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
-        self.adapter = Adapter(512, 4).to(clip_model.dtype)
-
             
     def forward(self, image):
         image_features = self.image_encoder(image.type(self.dtype))
-        x = self.adapter(image_features)
-
-        ratio = 0.6
-        image_features = ratio * x + (1 - ratio) * image_features
-
         text_features = self.text_encoder()
 
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
@@ -118,7 +96,7 @@ class CustomCLIP(nn.Module):
 
 
 @TRAINER_REGISTRY.register()
-class CLIP_Adapter(TrainerX):
+class CLIP_Layer_Norm(TrainerX):
     """ CLIP-Adapter """
 
     def build_model(self):
@@ -132,10 +110,16 @@ class CLIP_Adapter(TrainerX):
         print('Building custom CLIP')
         self.model = CustomCLIP(cfg, classnames, clip_model)
 
+        print(self.model)
+
         print('Turning off gradients in both the image and the text encoder')
         for name, param in self.model.named_parameters():
-            if 'adapter' not in name:
+            if 'ln' not in name:
                 param.requires_grad_(False)
+            else:
+                param.requires_grad_(True)
+        print(self.model)
+        sys.exit(1)
 
         if cfg.MODEL.INIT_WEIGHTS:
             load_pretrained_weights(self.model.adapter, cfg.MODEL.INIT_WEIGHTS)
