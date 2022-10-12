@@ -116,17 +116,15 @@ class CLIP_Layer_Norm(TrainerX):
                 param.requires_grad_(False)
             else:
                 param.requires_grad_(True)
-
-        if cfg.MODEL.INIT_WEIGHTS:
-            load_pretrained_weights(self.model.adapter, cfg.MODEL.INIT_WEIGHTS)
         
+
         self.model.to(self.device)
         # NOTE: only give text_encoder.adapter to the optimizer
-        self.optim = build_optimizer(self.model.adapter, cfg.OPTIM)
+        self.optim = build_optimizer(self.model, cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
         
 
-        self.register_model('clip_adapter', self.model.adapter, self.optim, self.sched)
+        self.register_model('clip_layer_norm', self.model, self.optim, self.sched)
 
         device_count = torch.cuda.device_count()
         if device_count > 1:
