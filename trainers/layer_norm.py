@@ -110,20 +110,15 @@ class CLIP_Layer_Norm(TrainerX):
         print('Building custom CLIP')
         self.model = CustomCLIP(cfg, classnames, clip_model)
 
-        print(self.model)
-
-        print('Turning off gradients in both the image and the text encoder')
+        print('Keep only layer norm trainable.')
         for name, param in self.model.named_parameters():
             if 'ln' not in name:
                 param.requires_grad_(False)
             else:
                 param.requires_grad_(True)
-        print(self.model)
-        sys.exit(1)
 
         if cfg.MODEL.INIT_WEIGHTS:
             load_pretrained_weights(self.model.adapter, cfg.MODEL.INIT_WEIGHTS)
-
         
         self.model.to(self.device)
         # NOTE: only give text_encoder.adapter to the optimizer
