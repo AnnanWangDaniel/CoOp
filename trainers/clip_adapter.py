@@ -132,7 +132,10 @@ class CLIP_Adapter(TrainerX):
         print('Building custom CLIP')
         self.model = CustomCLIP(cfg, classnames, clip_model)
 
-        print(self.model.named_parameters())
+        for name, param in self.model.named_parameters():
+            print(name)
+            print(param)
+            print('-----')
         sys.exit(1)
         print('Turning off gradients in both the image and the text encoder')
         for name, param in self.model.named_parameters():
