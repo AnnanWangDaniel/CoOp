@@ -110,13 +110,22 @@ class CLIP_Layer_Norm(TrainerX):
         print('Building custom CLIP')
         self.model = CustomCLIP(cfg, classnames, clip_model)
 
+        count = 0
         print('Keep only layer norm trainable.')
         for name, param in self.model.named_parameters():
-            if 'ln' not in name:
-                param.requires_grad_(False)
+            if 'ln_1' not in name:
+                if 'ln_2' not in name:
+                    param.requires_grad_(False)
+                else:
+                    param.requires_grad_(True)
+                    count += 1
             else:
                 param.requires_grad_(True)
+                count += 1
         
+        print(count)
+
+        sys.exit(1)
 
         self.model.to(self.device)
         # NOTE: only give text_encoder.adapter to the optimizer
