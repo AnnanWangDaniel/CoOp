@@ -28,6 +28,7 @@ import trainers.cocoop
 import trainers.zsclip
 import trainers.clip_adapter
 import trainers.layer_norm
+import trainers.clip_prompt_adapter
 
 
 def print_args(args, cfg):
