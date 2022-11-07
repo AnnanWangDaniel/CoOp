@@ -227,7 +227,7 @@ class CustomCLIP(nn.Module):
 
 
 @TRAINER_REGISTRY.register()
-class Prompt_Adapter(TrainerX):
+class CLIP_Prompt_Adapter(TrainerX):
     """Context Optimization (CoOp).
 
     Learning to Prompt for Vision-Language Models
