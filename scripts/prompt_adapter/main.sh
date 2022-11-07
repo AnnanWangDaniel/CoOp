@@ -2,7 +2,7 @@
 
 # custom config
 DATA=/home/FYP/c190190/DATA
-TRAINER=Clip_Prompt_Adapter
+TRAINER=CLIP_Prompt_Adapter
 
 DATASET=$1
 CFG=$2  # config file
