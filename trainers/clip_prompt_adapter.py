@@ -204,7 +204,8 @@ class CustomCLIP(nn.Module):
         self.text_encoder = TextEncoder(clip_model)
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
-        self.adapter = Adapter(512, 4).to(clip_model.dtype)
+        #self.adapter = Adapter(512, 4).to(clip_model.dtype) # vit
+        self.adapter = Adapter(512, 4).to(clip_model.dtype) # resnet
 
     def forward(self, image):
         image_features = self.image_encoder(image.type(self.dtype))
