@@ -211,7 +211,7 @@ class CustomCLIP(nn.Module):
         image_features = self.image_encoder(image.type(self.dtype))
         x = self.adapter(image_features)
 
-        ratio = 0.6
+        ratio = 0.2
         image_features = ratio * x + (1 - ratio) * image_features
 
         prompts = self.prompt_learner()
