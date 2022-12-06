@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # custom config
-DATA=/home/FYP/c190190/DATA
+DATA=/home/wangannan/DATA
 TRAINER=CoOp
 
 DATASET=$1
