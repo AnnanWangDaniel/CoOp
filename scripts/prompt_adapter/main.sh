@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # custom config
-DATA=/home/wangannan/DATA
+DATA=/home/FYP/c190190/DATA
 TRAINER=CLIP_Prompt_Adapter
 
 DATASET=$1
