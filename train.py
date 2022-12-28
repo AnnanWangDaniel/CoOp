@@ -30,6 +30,7 @@ import trainers.clip_adapter
 import trainers.layer_norm
 import trainers.clip_prompt_adapter
 import trainers.layer_norm_adapter
+import trainers.coop_layer_norm
 
 
 def print_args(args, cfg):
