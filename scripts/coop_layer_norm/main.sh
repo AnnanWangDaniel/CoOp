@@ -2,7 +2,7 @@
 
 # custom config
 DATA=/home/FYP/c190190/DATA
-TRAINER=CoOp
+TRAINER=CoOp_Layer_Norm
 
 DATASET=$1
 CFG=$2  # config file
