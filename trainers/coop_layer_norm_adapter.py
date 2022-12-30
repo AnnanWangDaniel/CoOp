@@ -181,6 +181,20 @@ class PromptLearner(nn.Module):
 
         return prompts
 
+class Adapter(nn.Module):
+    def __init__(self, c_in, reduction=4):
+        super(Adapter, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(c_in, c_in // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(c_in // reduction, c_in, bias=False),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        x = self.fc(x)
+        return x
+
 
 class CustomCLIP(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
@@ -191,9 +205,14 @@ class CustomCLIP(nn.Module):
         self.text_encoder = TextEncoder(clip_model)
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
+        self.adapter = Adapter(512, 4).to(clip_model.dtype)
 
     def forward(self, image):
         image_features = self.image_encoder(image.type(self.dtype))
+        x = self.adapter(image_features)
+
+        ratio = 0.6
+        image_features = ratio * x + (1 - ratio) * image_features
 
         prompts = self.prompt_learner()
         tokenized_prompts = self.tokenized_prompts
@@ -209,7 +228,7 @@ class CustomCLIP(nn.Module):
 
 
 @TRAINER_REGISTRY.register()
-class CoOp_Layer_Norm(TrainerX):
+class CoOp_Layer_Norm_Adapter(TrainerX):
     """Context Optimization (CoOp).
 
     Learning to Prompt for Vision-Language Models
@@ -236,9 +255,12 @@ class CoOp_Layer_Norm(TrainerX):
         print("Turning off gradients in both the image and the text encoder")
         for name, param in self.model.named_parameters():
             if "prompt_learner" not in name:
-                if 'ln_1' not in name:
-                    if 'ln_2' not in name:
-                        param.requires_grad_(False)
+                if 'adapter' not in name:
+                    if 'ln_1' not in name:
+                        if 'ln_2' not in name:
+                            param.requires_grad_(False)
+                        else:
+                            param.requires_grad_(True)
                     else:
                         param.requires_grad_(True)
                 else:
