@@ -242,6 +242,8 @@ class CoOp(TrainerX):
             load_pretrained_weights(self.model.prompt_learner, cfg.MODEL.INIT_WEIGHTS)
 
         self.model.to(self.device)
+
+        cfg.OPTIM.WEIGHT_DECAY = 0
         # NOTE: only give prompt_learner to the optimizer
         self.optim = build_optimizer(self.model.prompt_learner, cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
@@ -271,6 +273,12 @@ class CoOp(TrainerX):
         else:
             output = self.model(image)
             loss = F.cross_entropy(output, label)
+
+            # try L1 reg
+            l1_lambda = 0.001
+            l1_norm = sum(torch.linalg.norm(p, 1) for p in self.model.parameters())
+            loss = loss + l1_lambda * l1_norm
+
             self.model_backward_and_update(loss)
 
         loss_summary = {
