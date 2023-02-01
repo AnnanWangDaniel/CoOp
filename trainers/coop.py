@@ -273,9 +273,12 @@ class CoOp(TrainerX):
             loss = F.cross_entropy(output, label)
 
             # try L1 reg
-            l1_lambda = 0.001
-            l1_norm = sum(torch.linalg.norm(p, 1) for p in self.model.parameters())
-            loss = loss + l1_lambda * l1_norm
+            l1_reg = torch.tensor(0., requires_grad=True)
+            l1_lambda = 0.0001
+            for name, param in model.named_parameters():
+                if 'weight' in name:
+                    l1_reg = l1_reg + torch.linalg.norm(param, 1)
+            loss = loss + l1_lambda * l1_reg
 
             self.model_backward_and_update(loss)
 
