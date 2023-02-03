@@ -138,6 +138,11 @@ class CLIP_Adapter(TrainerX):
             if 'adapter' not in name:
                 param.requires_grad_(False)
 
+        #check parameter size
+        model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
+        params_count = sum([np.prod(p.size()) for p in model_parameters])
+        print("parameter count is ", params_count)
+
         if cfg.MODEL.INIT_WEIGHTS:
             load_pretrained_weights(self.model.adapter, cfg.MODEL.INIT_WEIGHTS)
 
