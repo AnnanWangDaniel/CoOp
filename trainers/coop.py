@@ -10,6 +10,8 @@ from dassl.metrics import compute_accuracy
 from dassl.utils import load_pretrained_weights, load_checkpoint
 from dassl.optim import build_optimizer, build_lr_scheduler
 
+import numpy as np
+
 from clip import clip
 from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
@@ -237,6 +239,11 @@ class CoOp(TrainerX):
         for name, param in self.model.named_parameters():
             if "prompt_learner" not in name:
                 param.requires_grad_(False)
+
+        #check parameter size
+        model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
+        params_count = sum([np.prod(p.size()) for p in model_parameters])
+        print("parameter count is ", params_count)
 
         if cfg.MODEL.INIT_WEIGHTS:
             load_pretrained_weights(self.model.prompt_learner, cfg.MODEL.INIT_WEIGHTS)
