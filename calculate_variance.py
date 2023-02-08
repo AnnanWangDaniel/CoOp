@@ -55,11 +55,12 @@ def inter_class_visual_variance(class_img_dict):
             image_features = model.encode_image(image_input).float()
         image_features = image_features.cpu().detach().numpy()
         x_mean = np.mean(image_features, axis = 0)
-        print(x_mean)
         for img_feature in image_features:
             img_feature - x_mean
             class_variance_lst.append(np.sum(np.square(img_feature - x_mean)))
-
+        print(class_variance_lst)
+        variance_sqr_lst.append(np.sum(class_variance_lst)/len(class_variance_lst))
+        print(variance_sqr_lst)
 
 
 data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
