@@ -43,6 +43,7 @@ def parse_class(split_file_path):
 
 def inter_class_visual_variance(class_img_dict):
     class_variance_lst = []
+    variance_sqr_lst = []
     images = []
     for key in class_img_dict:
         img_lst = class_img_dict[key]
@@ -55,6 +56,11 @@ def inter_class_visual_variance(class_img_dict):
         image_features = image_features.cpu().detach().numpy()
         x_mean = np.mean(image_features, axis = 0)
         print(x_mean)
+        for img_feature in image_features:
+            img_feature - x_mean
+            class_variance_lst.append(np.sum(np.square(img_feature - x_mean)))
+
+
 
 data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
 file_path = "/home/FYP/c190190/DATA/caltech-101/split_zhou_Caltech101.json"
