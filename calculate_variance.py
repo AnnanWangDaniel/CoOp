@@ -52,7 +52,8 @@ def inter_class_visual_variance(class_img_dict):
         image_input = torch.tensor(np.stack(images)).cuda()
         with torch.no_grad():
             image_features = model.encode_image(image_input).float()
-        x_mean = np.mean(image_features)
+        print(image_features)
+        x_mean = np.mean(image_features, axis = 0)
         print(x_mean)
 
 data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
