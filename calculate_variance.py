@@ -47,7 +47,7 @@ def inter_class_visual_variance(class_img_dict):
     for key in class_img_dict:
         img_lst = class_img_dict[key]
         for img_name in img_lst:
-            image = Image.open(os.path.join(skimage.data_dir, img_name)).convert("RGB")
+            image = Image.open(os.path.join(data_path, img_name)).convert("RGB")
             images.append(preprocess(image))
         image_input = torch.tensor(np.stack(images)).cuda()
         with torch.no_grad():
@@ -55,6 +55,7 @@ def inter_class_visual_variance(class_img_dict):
         x_mean = np.mean(image_features)
         print(x_mean)
 
+data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
 file_path = "/home/FYP/c190190/DATA/caltech-101/split_zhou_Caltech101.json"
 class_img_dict = parse_class(file_path)
 inter_class_visual_variance(class_img_dict)
