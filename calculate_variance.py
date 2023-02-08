@@ -52,7 +52,7 @@ def inter_class_visual_variance(class_img_dict):
         image_input = torch.tensor(np.stack(images)).cuda()
         with torch.no_grad():
             image_features = model.encode_image(image_input).float()
-        print(image_features)
+        print(image_features.cpu().detach().numpy())
         x_mean = np.mean(image_features, axis = 0)
         print(x_mean)
 
