@@ -41,7 +41,7 @@ def parse_class(split_file_path):
 
     return class_img_dict
 
-def inter_class_visual_variance(class_img_dict):
+def intra_class_visual_variance(class_img_dict):
     class_variance_lst = []
     variance_sqr_lst = []
     images = []
@@ -63,10 +63,18 @@ def inter_class_visual_variance(class_img_dict):
         variance_sqr_lst.append(np.sum(class_variance_lst)/len(class_variance_lst))
     print(variance_sqr_lst)
 
+def inter_class_text_variance(class_img_dict):
+    texts = []
+    for key in class_img_dict:
+        texts.append(key)
+    text_tokens = clip.tokenize(texts).cuda()
+    with torch.no_grad():
+        text_features = model.encode_text(text_tokens).float()
+        text_features /= text_features.norm(dim=-1, keepdim=True)
 
 data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
 file_path = "/home/FYP/c190190/DATA/caltech-101/split_zhou_Caltech101.json"
 class_img_dict = parse_class(file_path)
-inter_class_visual_variance(class_img_dict)
+intra_class_visual_variance(class_img_dict)
 
     
