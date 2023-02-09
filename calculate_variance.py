@@ -83,7 +83,7 @@ def inter_class_text_variance(class_img_dict):
     for key in class_img_dict:
         texts.append(key)
 
-    text_tokens = clip.tokenize(texts).cuda()
+    text_tokens = clip.tokenize(["This is " + desc for desc in texts]).cuda()
     with torch.no_grad():
         text_features = model.encode_text(text_tokens).float()
         text_features /= text_features.norm(dim=-1, keepdim=True)
