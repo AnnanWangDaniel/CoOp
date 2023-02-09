@@ -11,7 +11,7 @@ from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
 _tokenizer = _Tokenizer()
 
-model, preprocess = clip.load("ViT-B/32")
+model, preprocess = clip.load("ViT-B/16")
 model.cuda().eval()
 input_resolution = model.visual.input_resolution
 
