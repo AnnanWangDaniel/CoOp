@@ -39,6 +39,8 @@ def parse_class(split_file_path):
         else:
             class_img_dict[item[2]] = [item[0]]
 
+    print("class number is ", len(class_img_dict))
+
     return class_img_dict
 
 def intra_class_visual_variance(class_img_dict):
@@ -67,7 +69,7 @@ def intra_class_visual_variance(class_img_dict):
 
     print(len(variance_sqr_lst))
     intra_class_variance = np.sum(variance_sqr_lst)/len(variance_sqr_lst)
-    print("Intra-class Visual Variance of ", class_img_dict, " is ", intra_class_variance)
+    print("Intra-class Visual Variance is ", intra_class_variance)
 
 def inter_class_text_variance(class_img_dict):
     texts = []
@@ -88,11 +90,14 @@ def inter_class_text_variance(class_img_dict):
 
     inter_class_variance = np.sum(text_variance_lst)/len(text_variance_lst)
 
-    print("Inter-class Text Variance of ", class_img_dict, " is ", inter_class_variance)
+    print(len(inter_class_variance))
+
+    print("Inter-class Text Variance of is ", inter_class_variance)
 
 data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
 file_path = "/home/FYP/c190190/DATA/caltech-101/split_zhou_Caltech101.json"
 class_img_dict = parse_class(file_path)
 intra_class_visual_variance(class_img_dict)
+inter_class_text_variance(class_img_dict)
 
     
