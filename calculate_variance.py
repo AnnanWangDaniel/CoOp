@@ -45,32 +45,50 @@ def intra_class_visual_variance(class_img_dict):
     class_variance_lst = []
     variance_sqr_lst = []
     images = []
+
     for key in class_img_dict:
         img_lst = class_img_dict[key]
+
         for img_name in img_lst:
             image = Image.open(os.path.join(data_path, img_name)).convert("RGB")
             images.append(preprocess(image))
+
         image_input = torch.tensor(np.stack(images)).cuda()
         with torch.no_grad():
             image_features = model.encode_image(image_input).float()
             image_features /= image_features.norm(dim=-1, keepdim=True)
         image_features = image_features.cpu().detach().numpy()
         x_mean = np.mean(image_features, axis = 0)
+
         for img_feature in image_features:
-            img_feature - x_mean
             class_variance_lst.append(np.sum(np.square(img_feature - x_mean)))
-        print(class_variance_lst)
+        
         variance_sqr_lst.append(np.sum(class_variance_lst)/len(class_variance_lst))
-    print(variance_sqr_lst)
+
+    print(len(variance_sqr_lst))
+    intra_class_variance = np.sum(variance_sqr_lst)/len(variance_sqr_lst)
+    print("Intra-class Visual Variance of ", class_img_dict, " is ", intra_class_variance)
 
 def inter_class_text_variance(class_img_dict):
     texts = []
+    text_variance_lst = []
+
     for key in class_img_dict:
         texts.append(key)
+
     text_tokens = clip.tokenize(texts).cuda()
     with torch.no_grad():
         text_features = model.encode_text(text_tokens).float()
         text_features /= text_features.norm(dim=-1, keepdim=True)
+    text_features = text_features.cpu().detach().numpy()
+    w_mean = np.mean(text_features, axis = 0)
+
+    for text_feature in text_features:
+        text_variance_lst.append(np.sum(np.square(text_feature - w_mean)))
+
+    inter_class_variance = np.sum(text_variance_lst)/len(text_variance_lst)
+
+    print("Inter-class Text Variance of ", class_img_dict, " is ", inter_class_variance)
 
 data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
 file_path = "/home/FYP/c190190/DATA/caltech-101/split_zhou_Caltech101.json"
