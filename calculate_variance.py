@@ -50,24 +50,29 @@ def intra_class_visual_variance(class_img_dict):
 
     for key in class_img_dict:
         img_lst = class_img_dict[key]
-
+        
         for img_name in img_lst:
             image = Image.open(os.path.join(data_path, img_name)).convert("RGB")
             images.append(preprocess(image))
 
         image_input = torch.tensor(np.stack(images)).cuda()
+        # get list of img embs in class c
         with torch.no_grad():
             image_features = model.encode_image(image_input).float()
             image_features /= image_features.norm(dim=-1, keepdim=True)
         image_features = image_features.cpu().detach().numpy()
+        # calculate the mean values of class c
         x_mean = np.mean(image_features, axis = 0)
 
+        # calculate the squared euclidean distance 
         for img_feature in image_features:
             class_variance_lst.append(np.sum(np.square(img_feature - x_mean)))
         
+        # calculate the intra class variance of class c
         variance_sqr_lst.append(np.sum(class_variance_lst)/len(class_variance_lst))
 
     print(len(variance_sqr_lst))
+    #calculate the average variance
     intra_class_variance = np.sum(variance_sqr_lst)/len(variance_sqr_lst)
     print("Intra-class Visual Variance is ", intra_class_variance)
 
