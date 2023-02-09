@@ -90,8 +90,6 @@ def inter_class_text_variance(class_img_dict):
 
     inter_class_variance = np.sum(text_variance_lst)/len(text_variance_lst)
 
-    print(len(inter_class_variance))
-
     print("Inter-class Text Variance of is ", inter_class_variance)
 
 data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
