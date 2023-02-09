@@ -46,10 +46,10 @@ def parse_class(split_file_path):
 def intra_class_visual_variance(class_img_dict):
     class_variance_lst = []
     variance_sqr_lst = []
-    images = []
 
     for key in class_img_dict:
         img_lst = class_img_dict[key]
+        images = []
         
         for img_name in img_lst:
             image = Image.open(os.path.join(data_path, img_name)).convert("RGB")
