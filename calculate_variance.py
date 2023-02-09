@@ -11,7 +11,7 @@ from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
 _tokenizer = _Tokenizer()
 
-model, preprocess = clip.load("ViT-B/16")
+model, preprocess = clip.load("ViT-B/32")
 model.cuda().eval()
 input_resolution = model.visual.input_resolution
 
@@ -26,7 +26,7 @@ def parse_class(split_file_path):
             class_img_dict[item[2]].append(item[0])
         else:
             class_img_dict[item[2]] = [item[0]]
-    '''
+
     for item in data["val"]:
         if item[2] in class_img_dict:
             class_img_dict[item[2]].append(item[0])
@@ -38,7 +38,6 @@ def parse_class(split_file_path):
             class_img_dict[item[2]].append(item[0])
         else:
             class_img_dict[item[2]] = [item[0]]
-    '''
     
     print("class number is ", len(class_img_dict))
 
@@ -84,7 +83,7 @@ def inter_class_text_variance(class_img_dict):
     for key in class_img_dict:
         texts.append(key)
 
-    text_tokens = clip.tokenize(["This is " + desc for desc in texts]).cuda()
+    text_tokens = clip.tokenize(texts).cuda()
     with torch.no_grad():
         text_features = model.encode_text(text_tokens).float()
         text_features /= text_features.norm(dim=-1, keepdim=True)
