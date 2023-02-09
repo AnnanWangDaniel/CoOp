@@ -97,8 +97,12 @@ def inter_class_text_variance(class_img_dict):
 
     print("Inter-class Text Variance is ", inter_class_variance)
 
-data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
-file_path = "/home/FYP/c190190/DATA/caltech-101/split_zhou_Caltech101.json"
+# data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
+data_path = "/home/FYP/c190190/DATA/stanford_cars/"
+
+# file_path = "/home/FYP/c190190/DATA/caltech-101/split_zhou_Caltech101.json"
+file_path = "/home/FYP/c190190/DATA/stanford_cars/split_zhou_StanfordCars.json"
+
 class_img_dict = parse_class(file_path)
 intra_class_visual_variance(class_img_dict)
 inter_class_text_variance(class_img_dict)
