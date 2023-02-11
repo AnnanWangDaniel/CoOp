@@ -100,13 +100,15 @@ def inter_class_text_variance(class_img_dict):
 # data_path = "/home/FYP/c190190/DATA/caltech-101/101_ObjectCategories/"
 # data_path = "/home/FYP/c190190/DATA/stanford_cars/"
 # data_path = "/home/FYP/c190190/DATA/oxford_flowers/jpg/"
-data_path = "/home/FYP/c190190/DATA/ucf101/UCF-101-midframes/"
+# data_path = "/home/FYP/c190190/DATA/ucf101/UCF-101-midframes/"
+data_path = "/home/FYP/c190190/DATA/eurosat/2750/"
 
 
 # file_path = "/home/FYP/c190190/DATA/caltech-101/split_zhou_Caltech101.json"
 # file_path = "/home/FYP/c190190/DATA/stanford_cars/split_zhou_StanfordCars.json"
 # file_path = "/home/FYP/c190190/DATA/oxford_flowers/split_zhou_OxfordFlowers.json"
-file_path = "/home/FYP/c190190/DATA/ucf101/split_zhou_UCF101.json"
+# file_path = "/home/FYP/c190190/DATA/ucf101/split_zhou_UCF101.json"
+file_path = "/home/FYP/c190190/DATA/eurosat/split_zhou_EuroSAT.json"
 
 class_img_dict = parse_class(file_path)
 intra_class_visual_variance(class_img_dict)
