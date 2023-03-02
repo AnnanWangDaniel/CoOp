@@ -232,6 +232,8 @@ class CustomCLIP(nn.Module):
         tokenized_prompts = self.tokenized_prompts
         text_features = self.text_encoder(prompts, tokenized_prompts)
 
+        print(image_features.shape)
+        print(text_features.shape)
         ratio = self.learnable_rate(image_features, text_features)
         image_features = ratio * x + (1 - ratio) * image_features
 
