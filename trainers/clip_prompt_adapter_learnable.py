@@ -205,7 +205,7 @@ class Learnable_rate(nn.Module):
         self.fc3 = nn.Linear(32, 1) # Fully connected layer with 1 neuron
 
     def forward(self, x1, x2):
-        x = torch.cat((x1, x2), dim=1)
+        x = torch.cat((x1, x2), dim=0)
         x = F.relu(self.fc1(x)) # Pass through first fully connected layer with ReLU activation
         x = F.relu(self.fc2(x)) # Pass through second fully connected layer with ReLU activation
         x = torch.sigmoid(self.fc3(x)) # Pass through third fully connected layer with sigmoid activation to get output in range 0 to 1
