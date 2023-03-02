@@ -272,7 +272,8 @@ class CLIP_Prompt_Adapter_Learnable(TrainerX):
         for name, param in self.model.named_parameters():
             if "prompt_learner" not in name:
                 if 'adapter' not in name:
-                    param.requires_grad_(False)
+                    if 'learnable_rate' not in name:
+                        param.requires_grad_(False)
 
         #check parameter size
         model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
