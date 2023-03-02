@@ -204,8 +204,7 @@ class Learnable_rate(nn.Module):
         self.fc2 = nn.Linear(64, 32) # Fully connected layer with 32 neurons
         self.fc3 = nn.Linear(32, 1) # Fully connected layer with 1 neuron
 
-    def forward(self, x1, x2):
-        x = torch.cat((x1, x2), dim=1) # Concatenate input vectors along dimension 1
+    def forward(self, x):
         x = F.relu(self.fc1(x)) # Pass through first fully connected layer with ReLU activation
         x = F.relu(self.fc2(x)) # Pass through second fully connected layer with ReLU activation
         x = torch.sigmoid(self.fc3(x)) # Pass through third fully connected layer with sigmoid activation to get output in range 0 to 1
@@ -232,9 +231,7 @@ class CustomCLIP(nn.Module):
         tokenized_prompts = self.tokenized_prompts
         text_features = self.text_encoder(prompts, tokenized_prompts)
 
-        print(image_features.shape)
-        print(text_features.shape)
-        ratio = self.learnable_rate(image_features, text_features)
+        ratio = self.learnable_rate(image_features)
         image_features = ratio * x + (1 - ratio) * image_features
 
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
