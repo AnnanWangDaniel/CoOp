@@ -200,12 +200,11 @@ class Adapter(nn.Module):
 class Learnable_rate(nn.Module):
     def __init__(self, input_size = 512):
         super(Learnable_rate, self).__init__()
-        self.fc1 = nn.Linear(input_size, 64) # Fully connected layer with 64 neurons
-        self.fc2 = nn.Linear(64, 32) # Fully connected layer with 32 neurons
-        self.fc3 = nn.Linear(32, 1) # Fully connected layer with 1 neuron
+        self.fc1 = nn.Linear(input_size, 256) # Fully connected layer with 64 neurons
+        self.fc2 = nn.Linear(256, 64) # Fully connected layer with 32 neurons
+        self.fc3 = nn.Linear(64, 1) # Fully connected layer with 1 neuron
 
-    def forward(self, x1, x2):
-        x = torch.cat((x1, x2), dim=0)
+    def forward(self, x):
         x = F.relu(self.fc1(x)) # Pass through first fully connected layer with ReLU activation
         x = F.relu(self.fc2(x)) # Pass through second fully connected layer with ReLU activation
         x = torch.sigmoid(self.fc3(x)) # Pass through third fully connected layer with sigmoid activation to get output in range 0 to 1
