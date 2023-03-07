@@ -100,13 +100,14 @@ class CustomCLIP(nn.Module):
         self.dtype = clip_model.dtype
         self.adapter = Adapter(512, 4).to(clip_model.dtype) # vit
         #self.adapter = Adapter(1024, 4).to(clip_model.dtype) # resnet
-
+        self.learnable_ratio = nn.Parameter(torch.tensor(0.), requires_grad=True)
             
     def forward(self, image):
         image_features = self.image_encoder(image.type(self.dtype))
         x = self.adapter(image_features)
 
-        ratio = 0.6
+        #ratio = 0.6
+        ratio = torch.sigmoid(self.learnable_ratio)
         image_features = ratio * x + (1 - ratio) * image_features
 
         text_features = self.text_encoder()
@@ -138,7 +139,8 @@ class CLIP_Adapter(TrainerX):
         print('Turning off gradients in both the image and the text encoder')
         for name, param in self.model.named_parameters():
             if 'adapter' not in name:
-                param.requires_grad_(False)
+                if 'learnable_ratio' not in name:
+                    param.requires_grad_(False)
 
         #check parameter size
         model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
@@ -151,7 +153,7 @@ class CLIP_Adapter(TrainerX):
         
         self.model.to(self.device)
         # NOTE: only give text_encoder.adapter to the optimizer
-        self.optim = build_optimizer(self.model.adapter, cfg.OPTIM)
+        self.optim = build_optimizer(self.model, cfg.OPTIM)
         self.sched = build_lr_scheduler(self.optim, cfg.OPTIM)
         
 
