@@ -222,7 +222,7 @@ class CustomCLIP(nn.Module):
         self.adapter = Adapter(512, 4).to(clip_model.dtype) # vit
         #self.adapter = Adapter(1024, 4).to(clip_model.dtype) # resnet
         # self.learnable_rate = Learnable_rate(512).to(clip_model.dtype)
-        self.learnable_ratio = nn.Parameter(torch.tensor(0.), requires_grad=True).to(clip_model.dtype)
+        self.learnable_ratio = nn.Parameter(torch.tensor(0.), requires_grad=True)
 
     def forward(self, image):
         image_features = self.image_encoder(image.type(self.dtype))
