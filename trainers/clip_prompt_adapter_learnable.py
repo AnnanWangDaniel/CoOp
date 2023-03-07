@@ -197,18 +197,18 @@ class Adapter(nn.Module):
         x = self.fc(x)
         return x
     
-class Learnable_rate(nn.Module):
-    def __init__(self, input_size = 512):
-        super(Learnable_rate, self).__init__()
-        self.fc1 = nn.Linear(input_size, 256) # Fully connected layer with 64 neurons
-        self.fc2 = nn.Linear(256, 64) # Fully connected layer with 32 neurons
-        self.fc3 = nn.Linear(64, 1) # Fully connected layer with 1 neuron
+# class Learnable_rate(nn.Module):
+#     def __init__(self, input_size = 512):
+#         super(Learnable_rate, self).__init__()
+#         self.fc1 = nn.Linear(input_size, 256) # Fully connected layer with 64 neurons
+#         self.fc2 = nn.Linear(256, 64) # Fully connected layer with 32 neurons
+#         self.fc3 = nn.Linear(64, 1) # Fully connected layer with 1 neuron
 
-    def forward(self, x):
-        x = F.relu(self.fc1(x)) # Pass through first fully connected layer with ReLU activation
-        x = F.relu(self.fc2(x)) # Pass through second fully connected layer with ReLU activation
-        x = torch.sigmoid(self.fc3(x)) # Pass through third fully connected layer with sigmoid activation to get output in range 0 to 1
-        return x
+#     def forward(self, x):
+#         x = F.relu(self.fc1(x)) # Pass through first fully connected layer with ReLU activation
+#         x = F.relu(self.fc2(x)) # Pass through second fully connected layer with ReLU activation
+#         x = torch.sigmoid(self.fc3(x)) # Pass through third fully connected layer with sigmoid activation to get output in range 0 to 1
+#         return x
 
 class CustomCLIP(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
@@ -221,7 +221,8 @@ class CustomCLIP(nn.Module):
         self.dtype = clip_model.dtype
         self.adapter = Adapter(512, 4).to(clip_model.dtype) # vit
         #self.adapter = Adapter(1024, 4).to(clip_model.dtype) # resnet
-        self.learnable_rate = Learnable_rate(512).to(clip_model.dtype)
+        # self.learnable_rate = Learnable_rate(512).to(clip_model.dtype)
+        self.learnable_ratio = nn.Parameter(torch.tensor(0.), requires_grad=True).to(clip_model.dtype)
 
     def forward(self, image):
         image_features = self.image_encoder(image.type(self.dtype))
@@ -231,7 +232,7 @@ class CustomCLIP(nn.Module):
         tokenized_prompts = self.tokenized_prompts
         text_features = self.text_encoder(prompts, tokenized_prompts)
 
-        ratio = self.learnable_rate(x)
+        ratio = torch.sigmoid(self.learnable_ratio)
         image_features = ratio * x + (1 - ratio) * image_features
 
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
@@ -272,7 +273,7 @@ class CLIP_Prompt_Adapter_Learnable(TrainerX):
         for name, param in self.model.named_parameters():
             if "prompt_learner" not in name:
                 if 'adapter' not in name:
-                    if 'learnable_rate' not in name:
+                    if 'learnable_ratio' not in name:
                         param.requires_grad_(False)
 
         #check parameter size
